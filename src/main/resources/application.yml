@@ -1,0 +1,1 @@
+poller.emails: '[{"email":"username@email.com","password":"password","fetchStrategy":"imapPollFlow"}]'
