@@ -3,26 +3,26 @@ package com.bourntec.mailpoller.flows.impl;
 import java.io.IOException;
 
 import javax.mail.Authenticator;
-//import javax.mail.BodyPart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SearchTerm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-//import org.springframework.integration.mail.dsl.ImapIdleChannelAdapterSpec;
 import org.springframework.integration.mail.dsl.Mail;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
+
 import com.bourntec.mailpoller.flows.ImapIntegrationFlow;
+import com.bourntec.mailpoller.flows.utils.MailProcessor;
 
 
 @Component("imapIdleFlow")
@@ -30,7 +30,9 @@ public class ImapIdleFlow  implements ImapIntegrationFlow {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-
+	@Autowired
+	private MailProcessor mailProcessor;
+	
 	@Autowired
 	@Qualifier("imapURL")
 	private String imapURL;
@@ -46,7 +48,7 @@ public class ImapIdleFlow  implements ImapIntegrationFlow {
 
 
 	public IntegrationFlow integrationFlow(String email,String password){
-		//		ImapIdleChannelAdapterSpec spec = ;
+		logger.info("integrationFlow()");
 		System.out.println("integrationFlow()");
 		return IntegrationFlows
 				.from(Mail.imapIdleAdapter(imapURL)
@@ -68,14 +70,11 @@ public class ImapIdleFlow  implements ImapIntegrationFlow {
 					@Override
 					public void handleMessage(Message<?> message) throws MessagingException{
 						System.out.println("handleMessage()");
-						MimeMessage msg = ((javax.mail.internet.MimeMessage) message.getPayload());
 						try {
-							MimeMultipart mimeMultipart = (MimeMultipart) msg.getContent();
-							ImapPollFlow.getContentFromMimeMultipart(mimeMultipart);
-						} catch (MessagingException | IOException | javax.mail.MessagingException e) {
-							System.out.println("Messaging Exception | IOException");
+							mailProcessor.logMail(((javax.mail.internet.MimeMessage) message.getPayload()));
+						} catch (IOException | javax.mail.MessagingException e) {
+							System.out.println("IOException | javax.mail.MessagingException occurred");
 							e.printStackTrace();
-							
 						}
 //						logger.info(message.getPayload().toString());
 						System.out.println(message.getPayload().toString());

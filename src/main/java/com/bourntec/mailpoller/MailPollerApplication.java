@@ -2,22 +2,23 @@ package com.bourntec.mailpoller;
 
 import java.io.IOException;
 import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.mail.Flags;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
 import javax.mail.search.SearchTerm;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.integration.annotation.Transformer;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.context.StandardIntegrationFlowContext;
 import org.springframework.integration.mail.support.DefaultMailHeaderMapper;
-import org.springframework.integration.mail.transformer.MailToStringTransformer;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.scheduling.PollerMetadata;
 
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @SpringBootApplication
+@ComponentScan(basePackages = {"com.bourntec.mailpoller.*"})
 public class MailPollerApplication {
 
 	public static void main(String[] args) {

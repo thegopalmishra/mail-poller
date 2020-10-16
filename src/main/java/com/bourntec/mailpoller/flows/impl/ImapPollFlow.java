@@ -1,12 +1,18 @@
 package com.bourntec.mailpoller.flows.impl;
 
+import static com.bourntec.mailpoller.utils.ConstantLiterals.PROPERTY_MAIL_IMAP_CONNECTION_POOL_SIZE;
+import static com.bourntec.mailpoller.utils.ConstantLiterals.PROPERTY_MAIL_IMAP_SSL_TRUST;
+import static com.bourntec.mailpoller.utils.ConstantLiterals.PROPERTY_MAIL_IMAP_START_TLS_ENABLE;
+import static com.bourntec.mailpoller.utils.ConstantLiterals.PROPERTY_MAIL_MIME_ALLOW_UTF_8;
+import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_CONNECTION_POOL_SIZE;
+import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_TRUE;
+import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_WILDCARD;
+
 import java.io.IOException;
 
 import javax.mail.Authenticator;
-import javax.mail.BodyPart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SearchTerm;
 
 import org.slf4j.Logger;
@@ -18,9 +24,10 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.mail.dsl.Mail;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
+
 import com.bourntec.mailpoller.flows.ImapIntegrationFlow;
+import com.bourntec.mailpoller.flows.utils.MailProcessor;
 
 @Component("imapPollFlow")
 public class ImapPollFlow implements ImapIntegrationFlow {
@@ -28,7 +35,9 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-
+	@Autowired
+	private MailProcessor mailProcessor;
+	
 	@Autowired
 	@Qualifier("imapURL")
 	private String imapURL;
@@ -44,6 +53,7 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 
 	@Override
 	public IntegrationFlow integrationFlow(String email,String password){
+		logger.info("integrationFlow()");
 		System.out.println("integrationFlow()");
 		return IntegrationFlows
 				.from(Mail.imapInboundAdapter(imapURL)
@@ -58,17 +68,17 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 							}
 						})
 						.javaMailProperties(p -> p
-										.put("mail.mime.allowutf8", "true")
-										.put("mail.imap.connectionpoolsize", "5")
-										.put("mail.imap.starttls.enable", "true")
-										.put("mail.imap.ssl.trust", "*")
-									), e -> e
-										.poller(Pollers.fixedRate(5000)
-											.maxMessagesPerPoll(1)))
+								.put(PROPERTY_MAIL_MIME_ALLOW_UTF_8, STRING_VALUE_TRUE)
+								.put(PROPERTY_MAIL_IMAP_CONNECTION_POOL_SIZE, STRING_VALUE_CONNECTION_POOL_SIZE)
+								.put(PROPERTY_MAIL_IMAP_START_TLS_ENABLE, STRING_VALUE_TRUE)
+								.put(PROPERTY_MAIL_IMAP_SSL_TRUST, STRING_VALUE_WILDCARD)
+								), e -> e
+						.poller(Pollers.fixedRate(5000)
+								.maxMessagesPerPoll(1)))
 				.<MimeMessage>handle((payload, header) -> {
 					Object o = null;
 					try {
-						o= logMail(payload);
+						o= mailProcessor.logMail(payload);
 					} catch (IOException | javax.mail.MessagingException e1) {
 						e1.printStackTrace();
 					}
@@ -80,41 +90,6 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 	}
 
 
-	private Object logMail(MimeMessage message) throws IOException, javax.mail.MessagingException {
-		try {
-			System.out.println("logMail()");
-			System.out.println(message.getSubject());
-			System.out.println(message.getContent().toString());
-//			logger.info(message.getContent().toString());
-			MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
-			ImapPollFlow.getContentFromMimeMultipart(mimeMultipart);
-		} catch(ClassCastException ce) {
-			System.out.println("Class cast exception");
-			System.out.println(message.getContent().toString());
-		}
-		catch (Exception e) {
-			System.out.println("### Read mail content error");
-//			logger.error("Read mail content error", e);
-		}
-		return null;
-	}
-
-	public static String getContentFromMimeMultipart(MimeMultipart mimeMultipart) throws IOException, MessagingException, javax.mail.MessagingException {
-		System.out.println("getContentFromMimeMultipart()");
-		String emailBody = "";
-		int count = mimeMultipart.getCount();
-		for (int i = 0; i < count; i++) {
-			BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-			if (bodyPart.isMimeType("text/plain")) {
-				emailBody = emailBody + "\n" + bodyPart.getContent();
-			} else if (bodyPart.isMimeType("text/html")) {
-				emailBody = emailBody + "\n" + bodyPart.getContent();
-			} else if (bodyPart.getContent() instanceof MimeMultipart){
-				emailBody = emailBody + getContentFromMimeMultipart((MimeMultipart) bodyPart.getContent());
-			}
-		}
-		System.out.println(emailBody);
-		return emailBody;
-	}
+	
 
 }
