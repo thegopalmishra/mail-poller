@@ -13,6 +13,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 
+import org.hibernate.annotations.Type;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
@@ -31,7 +33,7 @@ public class EmailStoreModel  implements Serializable {
 	private Long emailId;
 	
 	
-	@Column(nullable = false, updatable = true)
+	@Column(nullable = false, updatable = true) //255
 	private String emailSubject;
 	
 	@NotBlank
@@ -39,7 +41,7 @@ public class EmailStoreModel  implements Serializable {
 	private String emailFrom;
 	
 	@NotBlank
-	@Column(nullable = false, updatable = true)
+	@Column(nullable = false, updatable = true, columnDefinition = "varchar(4096)")
 	private String emailTo;
 	
 	@NotBlank
@@ -50,6 +52,7 @@ public class EmailStoreModel  implements Serializable {
 	@Column(nullable = false, updatable = true)
 	private String emailSentDate;
 	
+	@Type(type="text")
 	@Column(nullable = false, updatable = true)
 	private String emailBody;
 	
@@ -60,7 +63,7 @@ public class EmailStoreModel  implements Serializable {
 	private Integer emailAttachmentCount;
 	
 	@NotBlank
-	@Column(nullable = false, updatable = true)
+	@Column(nullable = false, updatable = true, columnDefinition = "varchar(4096)")
 	private String emailAttachmentNames;
 
 	public Long getEmailId() {

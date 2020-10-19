@@ -81,7 +81,8 @@ public class MailPollerApplication {
 	@Bean("imapURL")
 	public String imapUrl() {
 		System.out.println("imapUrl()");
-		return "imaps://imap.gmail.com:993/inbox";
+//		return "imaps://imap.gmail.com:993/inbox";
+		return "imaps://outlook.office365.com:993/inbox";
 	}
 
 
