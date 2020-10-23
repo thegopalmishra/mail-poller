@@ -20,6 +20,11 @@ services:
       - "61616:61616"
     networks: [backing-services]
     volumes: ["activemq-data:/opt/activemq/conf", "activemq-data:/data/activemq", "activemq-data:/var/log/activemq"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -f https://localhost:8161/admin"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     environment:
       ACTIVEMQ_REMOVE_DEFAULT_ACCOUNT: "true"
       ACTIVEMQ_ADMIN_LOGIN: admin
@@ -45,8 +50,11 @@ services:
       MYSQL_DATABASE: mailpoller
       MYSQL_ROOT_PASSWORD: 'Temp@12345'
       MYSQL_ROOT_HOST: '%'
+      MYSQL_USER: 'admin'
+      MYSQL_PASSWORD: 'bourntec@12'
     volumes:
       - ./sql:/docker-entrypoint-initdb.d
+      # - ./sql:/var/data/bourntec/sql
     ports:
       - "3307:3306"
     healthcheck:
@@ -56,6 +64,7 @@ services:
       retries: 10
 
   mail-poller:
+      container_name: mail-poller
       restart: on-failure
       build: ./
       networks: [backing-services]
