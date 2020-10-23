@@ -2,6 +2,7 @@ package com.bourntec.mailpoller.flows.impl;
 
 import java.io.IOException;
 
+import javax.jms.Queue;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 import javax.mail.internet.MimeMessage;
@@ -16,6 +17,7 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.mail.dsl.Mail;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -45,7 +47,16 @@ public class ImapIdleFlow  implements ImapIntegrationFlow {
 	@Qualifier("searchTerm")
 	public SearchTerm defaultSearchTerm;
 
+    
+//	@Autowired
+//    JmsTemplate jmsTemplate;
+//
+//    @Autowired
+//    Queue persistQueue;
+    
 
+    @Autowired
+    Queue saveQueue;
 
 	public IntegrationFlow integrationFlow(String email,String password){
 		logger.info("integrationFlow()");
@@ -70,6 +81,7 @@ public class ImapIdleFlow  implements ImapIntegrationFlow {
 					@Override
 					public void handleMessage(Message<?> message) throws MessagingException{
 						System.out.println("handleMessage()");
+//						jmsTemplate.convertAndSend(saveQueue, ((javax.mail.internet.MimeMessage) message.getPayload()));
 						try {
 							mailProcessor.logMail(((javax.mail.internet.MimeMessage) message.getPayload()));
 						} catch (IOException | javax.mail.MessagingException e) {

@@ -10,6 +10,7 @@ import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_WILDCA
 
 import java.io.IOException;
 
+import javax.jms.Queue;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 import javax.mail.internet.MimeMessage;
@@ -24,6 +25,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.mail.dsl.Mail;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
 import com.bourntec.mailpoller.flows.ImapIntegrationFlow;
@@ -49,7 +51,17 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 	@Autowired
 	@Qualifier("searchTerm")
 	public SearchTerm defaultSearchTerm;
-
+    
+//	@Autowired
+//    JmsTemplate jmsTemplate;
+//	
+//
+//    @Autowired
+//    Queue persistQueue;
+//    
+//
+//    @Autowired
+//    Queue saveQueue;
 
 	@Override
 	public IntegrationFlow integrationFlow(String email,String password){
@@ -79,6 +91,7 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 					Object o = null;
 					try {
 						o= mailProcessor.logMail(payload);
+//						jmsTemplate.convertAndSend(saveQueue, payload);
 					} catch (IOException | javax.mail.MessagingException e1) {
 						e1.printStackTrace();
 					}

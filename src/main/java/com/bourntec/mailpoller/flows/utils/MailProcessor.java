@@ -17,6 +17,7 @@ import static com.bourntec.mailpoller.utils.ConstantLiterals.MIME_TYPE_TEXT_HTML
 import static com.bourntec.mailpoller.utils.ConstantLiterals.MIME_TYPE_TEXT_PLAIN;
 import static com.bourntec.mailpoller.utils.ConstantLiterals.SEPARATOR_NEW_LINE;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,14 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.jms.Queue;
 import javax.mail.BodyPart;
-import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
 
@@ -50,15 +52,30 @@ public class MailProcessor {
 	@Autowired
 	private EmailStoreService emailStoreService;
 	
-	
+    @Autowired
+    JmsTemplate jmsTemplate;
+    
+    @Autowired
+    Queue saveQueue;
+
+    @Autowired
+    Queue persistQueue;
+    
 	public Object logMail(MimeMessage message) throws IOException, javax.mail.MessagingException {
 		System.out.println("logMail()");
 		HashMap<String,String> email;
 		try {
 			// GenericUtils.coutLn(message.getContent().toString());
 			email = (HashMap<String, String>) processMimeMessage(message);
-			printEmail(email);
-			saveEmail(email);
+			
+//			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//			message.writeTo(baos);
+//			byte[] msgBytes = baos.toByteArray(); 
+//			jmsTemplate.convertAndSend(saveQueue, msgBytes);
+			
+			jmsTemplate.convertAndSend(persistQueue, email);
+//			printEmail(email);
+//			saveEmail(email);
 		} catch(ClassCastException ce) {
 			System.out.println("Class cast exception");
 			System.out.println(message.getContent().toString());
@@ -70,7 +87,7 @@ public class MailProcessor {
 		return null;
 	}
 
-	private void saveEmail(HashMap<String, String> email) {
+	public void saveEmail(HashMap<String, String> email) {
 		emailStoreService.saveEmail(
 				email.get(EMAIL_SUBJECT),
 				email.get(EMAIL_SENT_DATE),
@@ -85,7 +102,7 @@ public class MailProcessor {
 	}
 
 
-	private void printEmail(HashMap<String, String> email) {
+	public void printEmail(HashMap<String, String> email) {
 		GenericUtils.coutLn("=============================");
 		GenericUtils.coutLn("SUBJECT : " + email.get(EMAIL_SUBJECT));
 		GenericUtils.coutLn("FROM : " + email.get(EMAIL_FROM));
