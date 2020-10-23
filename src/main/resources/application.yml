@@ -1,1 +1,3 @@
 poller.emails: '[{"email":"username@email.com","password":"password","fetchStrategy":"imapPollFlow"}]'
+poller.server: 'imaps://outlook.office365.com:993/inbox'
+#poller.server: 'imaps://imap.gmail.com:993/inbox'

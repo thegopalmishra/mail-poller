@@ -44,6 +44,9 @@ public class MailPollerApplication {
 	@Value("${poller.emails}")
 	private String emails;
 
+	@Value("${poller.server}")
+	private String server;
+
 
 	@Autowired
 	private ApplicationContext appContext;
@@ -63,6 +66,7 @@ public class MailPollerApplication {
 	private void setupPollers() throws IOException {
 		System.out.println("setupPollers()");
 		List<EmailConfig> emailConfigs = mapper.readValue(emails, new TypeReference<List<EmailConfig>>() {});
+				
 		for (EmailConfig item : emailConfigs) {
 			ImapIntegrationFlow flow = appContext.getBean(item.getFetchStrategy(),ImapIntegrationFlow.class);
 			context.registration(flow.integrationFlow(item.getEmail(),item.getPassword())).register();
@@ -81,7 +85,9 @@ public class MailPollerApplication {
 	@Bean("imapURL")
 	public String imapUrl() {
 		System.out.println("imapUrl()");
-		return "imaps://imap.gmail.com:993/inbox";
+//		return "imaps://imap.gmail.com:993/inbox";
+//		return "imaps://outlook.office365.com:993/inbox";
+		return server;
 	}
 
 
