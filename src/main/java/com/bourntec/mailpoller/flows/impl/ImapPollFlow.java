@@ -8,10 +8,13 @@ import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_CONNEC
 import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_TRUE;
 import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_WILDCARD;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import javax.jms.Queue;
 import javax.mail.Authenticator;
+import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.SearchTerm;
@@ -91,6 +94,8 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 					Object o = null;
 					try {
 						o= mailProcessor.logMail(payload);
+//						Message msg = (Message) payload;
+						payload.writeTo(new FileOutputStream(new File("d:/mail.eml")));
 //						jmsTemplate.convertAndSend(saveQueue, payload);
 					} catch (IOException | javax.mail.MessagingException e1) {
 						e1.printStackTrace();
