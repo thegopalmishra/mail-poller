@@ -1,6 +1,23 @@
-version: "2.2"
+version: "3.0"
 
 services:
+
+  mail-poller:
+      container_name: mail-poller
+      restart: on-failure
+      build: ./
+      networks: [backing-services]
+      expose:
+        - "8081"
+      ports:
+        - 8081:8080
+      environment:
+        WAIT_HOSTS: mysql:3306
+        SPRING_DATASOURCE_URL: jdbc:mysql://docker-mysql:3306/mailpoller?autoReconnect=true&useSSL=false&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true
+        SPRING_ACTIVEMQ_BROKER-URL: tcp://activemq:61616
+      depends_on:
+        - docker-mysql
+        - activemq
 
   activemq:
     container_name: activemq
@@ -45,40 +62,26 @@ services:
     restart: always
     container_name: docker-mysql
     image: mysql
+    # command: --default-authentication-plugin=mysql_native_password
     networks: [backing-services]
     environment:
       MYSQL_DATABASE: mailpoller
-      MYSQL_ROOT_PASSWORD: 'Temp@12345'
-      MYSQL_ROOT_HOST: '%'
-      MYSQL_USER: 'admin'
-      MYSQL_PASSWORD: 'bourntec@12'
+      MYSQL_ROOT_PASSWORD: "Temp@12345"
+      # MYSQL_ROOT_HOST: "%"
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: "bourntec@12"
     volumes:
-      - ./sql:/docker-entrypoint-initdb.d
-      # - ./sql:/var/data/bourntec/sql
+      # - ./sql:/docker-entrypoint-initdb.d
+      - ./sql:/var/lib/mysql
     ports:
       - "3307:3306"
+    cap_add:
+      - SYS_NICE  # CAP_SYS_NICE
     healthcheck:
       test: "/usr/bin/mysql --user=root --password='Temp@12345'--execute \"SHOW DATABASES;\""
       interval: 2s
       timeout: 20s
       retries: 10
-
-  mail-poller:
-      container_name: mail-poller
-      restart: on-failure
-      build: ./
-      networks: [backing-services]
-      expose:
-        - "8081"
-      ports:
-        - 8081:8080
-      environment:
-        WAIT_HOSTS: mysql:3306
-        SPRING_DATASOURCE_URL: jdbc:mysql://docker-mysql:3306/mailpoller?autoReconnect=true&useSSL=false&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true
-        SPRING_ACTIVEMQ_BROKER-URL: tcp://activemq:61616
-      depends_on:
-        - docker-mysql
-        - activemq
 
 volumes:
   activemq-data: {}

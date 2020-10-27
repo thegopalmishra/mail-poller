@@ -22,6 +22,9 @@ local.properties
 .recommenders
 .classpath
 attachments/*
+logs/*
+sql/*
+
 
 # External tool builders
 .externalToolBuilders/
