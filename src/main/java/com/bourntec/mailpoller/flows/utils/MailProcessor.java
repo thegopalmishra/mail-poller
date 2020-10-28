@@ -19,20 +19,25 @@ import static com.bourntec.mailpoller.utils.ConstantLiterals.SEPARATOR_NEW_LINE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.jms.Queue;
 import javax.mail.BodyPart;
 import javax.mail.Part;
+import javax.mail.Session;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.fusesource.hawtbuf.ByteArrayInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.MessagingException;
@@ -65,8 +70,25 @@ public class MailProcessor {
 		System.out.println("logMail()");
 		HashMap<String,String> email;
 		try {
+			final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			message.writeTo(outputStream);
+			
+			
+			Properties props = System.getProperties();  
+			props.put("mail.host", "smtp.dummydomain.com");  
+			props.put("mail.transport.protocol", "smtp"); 
+			
+			Session mailSession = Session.getDefaultInstance(props, null);  
+			
+//			jmsTemplate.convertAndSend(saveQueue, outputStream.toByteArray());
+			// consumer
+			InputStream source = new ByteArrayInputStream(outputStream.toByteArray());  
+			MimeMessage msg = new MimeMessage(mailSession, source);  
+			
+
+			
 			// GenericUtils.coutLn(message.getContent().toString());
-			email = (HashMap<String, String>) processMimeMessage(message);
+			email = (HashMap<String, String>) processMimeMessage(msg);
 			
 //			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 //			message.writeTo(baos);
