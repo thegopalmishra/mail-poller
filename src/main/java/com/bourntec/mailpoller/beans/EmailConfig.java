@@ -1,5 +1,9 @@
 package com.bourntec.mailpoller.beans;
 
+/**
+ * @author Gopal
+ *
+ */
 public class EmailConfig {
 
 	private String email;

@@ -11,6 +11,10 @@ import java.util.Arrays;
 
 import javax.jms.Queue;
 
+/**
+ * @author Gopal
+ *
+ */
 @Configuration
 public class AMQConfig {
 

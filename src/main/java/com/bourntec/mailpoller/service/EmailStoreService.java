@@ -6,6 +6,10 @@ import org.springframework.stereotype.Service;
 
 import com.bourntec.mailpoller.models.EmailStoreModel;
 
+/**
+ * @author Gopal
+ *
+ */
 @Service(value = "emailStoreService")
 public interface EmailStoreService {
 

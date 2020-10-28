@@ -8,14 +8,9 @@ import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_CONNEC
 import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_TRUE;
 import static com.bourntec.mailpoller.utils.ConstantLiterals.STRING_VALUE_WILDCARD;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
-import javax.jms.Queue;
 import javax.mail.Authenticator;
-import javax.mail.Message;
 import javax.mail.PasswordAuthentication;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.SearchTerm;
@@ -28,13 +23,15 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.mail.dsl.Mail;
-import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
 import com.bourntec.mailpoller.flows.ImapIntegrationFlow;
 import com.bourntec.mailpoller.flows.utils.MailProcessor;
 
+/**
+ * @author Gopal
+ *
+ */
 @Component("imapPollFlow")
 public class ImapPollFlow implements ImapIntegrationFlow {
 
@@ -43,34 +40,21 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 
 	@Autowired
 	private MailProcessor mailProcessor;
-	
+
 	@Autowired
 	@Qualifier("imapURL")
 	private String imapURL;
 
-	@Autowired
-	@Qualifier("mailHeaderMapper")
-	public HeaderMapper<MimeMessage> mailHeaderMapper;
 
 	@Autowired
 	@Qualifier("searchTerm")
 	public SearchTerm defaultSearchTerm;
-    
-//	@Autowired
-//    JmsTemplate jmsTemplate;
-//	
-//
-//    @Autowired
-//    Queue persistQueue;
-//    
-//
-//    @Autowired
-//    Queue saveQueue;
+
+
 
 	@Override
 	public IntegrationFlow integrationFlow(String email,String password){
-		logger.info("integrationFlow()");
-		System.out.println("integrationFlow()");
+		logger.info("Entered: Method: integrationFlow(), Class: ImapPollFlow");
 		return IntegrationFlows
 				.from(Mail.imapInboundAdapter(imapURL)
 						.shouldMarkMessagesAsRead(true)
@@ -89,22 +73,18 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 								.put(PROPERTY_MAIL_IMAP_START_TLS_ENABLE, STRING_VALUE_TRUE)
 								.put(PROPERTY_MAIL_IMAP_SSL_TRUST, STRING_VALUE_WILDCARD)
 								), e -> e
-						.poller(Pollers.fixedRate(5000)
-								.maxMessagesPerPoll(1)))
+						.poller(Pollers.fixedRate(5000).maxMessagesPerPoll(1)))
 				.<MimeMessage>handle((payload, header) -> {
-					Object o = null;
+					logger.info("Entered: Method: handleMessage(), Class: ImapPollFlow");
 					try {
-						
-//						Message msg = (Message) payload;
-						payload.writeTo(new FileOutputStream(new File("d:/mail.eml")));
-//						final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//						payload.writeTo(outputStream);
-						o= mailProcessor.logMail(payload);
-//						jmsTemplate.convertAndSend(saveQueue, payload);
-					} catch (IOException | javax.mail.MessagingException e1) {
-						e1.printStackTrace();
+						logger.debug("Message: {}", payload.toString());
+						mailProcessor.postToProcessQueue(payload);
+					} catch (IOException | javax.mail.MessagingException e) {
+						logger.error("IOException | javax.mail.MessagingException occurred");
+						logger.debug("StackTrace: {}", e.getMessage());
 					}
-					return o;
+					logger.info("Exited: Method: handleMessage(), Class: ImapPollFlow");
+					return null; //Need to check why its needed.
 				})
 				.transform(Mail.toStringTransformer())
 				.get();
@@ -112,6 +92,6 @@ public class ImapPollFlow implements ImapIntegrationFlow {
 	}
 
 
-	
+
 
 }

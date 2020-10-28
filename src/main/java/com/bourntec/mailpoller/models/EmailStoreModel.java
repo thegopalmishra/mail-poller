@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 
@@ -50,6 +51,7 @@ public class EmailStoreModel  implements Serializable {
 	@Column(nullable = false, updatable = true)
 	private String emailSentDate;
 	
+	@Lob
 	@Column(nullable = false, updatable = true)
 	private String emailBody;
 	
@@ -60,7 +62,7 @@ public class EmailStoreModel  implements Serializable {
 	private Integer emailAttachmentCount;
 	
 	@NotBlank
-	@Column(nullable = false, updatable = true)
+	@Column(nullable = false, updatable = true, columnDefinition = "varchar(4096)")
 	private String emailAttachmentNames;
 
 	public Long getEmailId() {

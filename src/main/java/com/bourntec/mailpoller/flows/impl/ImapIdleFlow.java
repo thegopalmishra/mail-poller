@@ -5,19 +5,15 @@ import java.io.IOException;
 import javax.jms.Queue;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
-import javax.mail.internet.MimeMessage;
 import javax.mail.search.SearchTerm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.mail.dsl.Mail;
-import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -26,7 +22,10 @@ import org.springframework.stereotype.Component;
 import com.bourntec.mailpoller.flows.ImapIntegrationFlow;
 import com.bourntec.mailpoller.flows.utils.MailProcessor;
 
-
+/**
+ * @author Gopal
+ *
+ */
 @Component("imapIdleFlow")
 public class ImapIdleFlow  implements ImapIntegrationFlow {
 
@@ -40,27 +39,16 @@ public class ImapIdleFlow  implements ImapIntegrationFlow {
 	private String imapURL;
 
 	@Autowired
-	@Qualifier("mailHeaderMapper")
-	public HeaderMapper<MimeMessage> mailHeaderMapper;
-
-	@Autowired
 	@Qualifier("searchTerm")
 	public SearchTerm defaultSearchTerm;
 
-    
-//	@Autowired
-//    JmsTemplate jmsTemplate;
-//
-//    @Autowired
-//    Queue persistQueue;
-    
+
 
     @Autowired
     Queue saveQueue;
 
 	public IntegrationFlow integrationFlow(String email,String password){
-		logger.info("integrationFlow()");
-		System.out.println("integrationFlow()");
+		logger.info("Entered: Method: integrationFlow(), Class: ImapIdleFlow");
 		return IntegrationFlows
 				.from(Mail.imapIdleAdapter(imapURL)
 						.autoStartup(true)
@@ -75,21 +63,19 @@ public class ImapIdleFlow  implements ImapIntegrationFlow {
 						})
 						.shouldReconnectAutomatically(true)
 						.autoCloseFolder(false)
-//						.headerMapper(mailHeaderMapper)
 						)
 				.handle(new MessageHandler() {
 					@Override
 					public void handleMessage(Message<?> message) throws MessagingException{
-						System.out.println("handleMessage()");
-//						jmsTemplate.convertAndSend(saveQueue, ((javax.mail.internet.MimeMessage) message.getPayload()));
+						logger.info("Entered: Method: handleMessage(), Class: ImapIdleFlow");
 						try {
-							mailProcessor.logMail(((javax.mail.internet.MimeMessage) message.getPayload()));
+							logger.debug("Message: {}", message.getPayload().toString());
+							mailProcessor.postToProcessQueue(((javax.mail.internet.MimeMessage) message.getPayload()));
 						} catch (IOException | javax.mail.MessagingException e) {
-							System.out.println("IOException | javax.mail.MessagingException occurred");
-							e.printStackTrace();
+							logger.error("IOException | javax.mail.MessagingException occurred");
+							logger.debug("StackTrace: {}", e.getMessage());
 						}
-//						logger.info(message.getPayload().toString());
-						System.out.println(message.getPayload().toString());
+						logger.info("Exited: Method: handleMessage(), Class: ImapIdleFlow");
 					}
 				})
 				.transform(Mail.toStringTransformer())

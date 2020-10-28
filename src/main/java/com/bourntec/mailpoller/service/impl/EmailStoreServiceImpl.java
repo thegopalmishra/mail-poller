@@ -18,7 +18,6 @@ import com.bourntec.mailpoller.service.EmailStoreService;
  * @author Gopal
  *
  */
-
 @Service(value = "emailStoreService")
 public class EmailStoreServiceImpl implements EmailStoreService {
 
@@ -31,7 +30,7 @@ public class EmailStoreServiceImpl implements EmailStoreService {
 	@Override
 	public EmailStoreModel saveEmail(String subject, String sentDate, String from, String to, String contentType, String body,
 			String hasAttachment, String attachmentCount, String attachmentNames) {
-		logger.info("saveEmail()");
+		logger.info("Entered: Method: saveEmail(), Class: EmailStoreServiceImpl");
 		EmailStoreModel esm = new EmailStoreModel();
 		esm.setEmailSubject(subject);
 		esm.setEmailFrom(from);
@@ -42,6 +41,7 @@ public class EmailStoreServiceImpl implements EmailStoreService {
 		esm.setEmailHasAttachment(Boolean.parseBoolean(hasAttachment));
 		esm.setEmailAttachmentCount(Integer.parseInt(attachmentCount));
 		esm.setEmailAttachmentNames(attachmentNames);
+		logger.info("Exited: Method: saveEmail(), Class: EmailStoreServiceImpl");
 		return emailStoreRepo.save(esm);
 	}
 
@@ -49,6 +49,7 @@ public class EmailStoreServiceImpl implements EmailStoreService {
 
 	@Override
 	public EmailStoreModel findByEmailId(Long emailId) {
+		logger.info("Entered & Exited: Method: findByEmailId(), Class: EmailStoreServiceImpl");
 		return emailStoreRepo.findById(emailId).get();
 	}
 
@@ -56,6 +57,7 @@ public class EmailStoreServiceImpl implements EmailStoreService {
 
 	@Override
 	public List<EmailStoreModel> findBySubject(String subject) {
+		logger.info("Entered & Exited: Method: findBySubject(), Class: EmailStoreServiceImpl");
 		return emailStoreRepo.findByEmailSubject(subject);
 	}
 
